@@ -1,5 +1,6 @@
-import { colorStatusCode, getPath } from "./lib/helper";
-import express, { Request, Response, NextFunction } from "express";
+import { getPath } from "./lib/helper";
+import dotenv from "dotenv";
+import express, { Request, Response } from "express";
 import path from "path";
 import multer from "multer";
 import { default as pdfMergerHandler } from "./api/pdf-merger";
@@ -10,8 +11,9 @@ import reqInfoMiddleware from "./middleware/req-info-middleware";
 import { tools } from "./lib/tools";
 import { pageTitles } from "./lib/pageTitles";
 
+dotenv.config();
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(express.json({ limit: "5mb" })); // To parse JSON bodies with HTML content

@@ -1,5 +1,7 @@
 onlyBuiltDependencies:
   - canvas
+  - es5-ext
   - esbuild
+  - muhammara
   - puppeteer
   - sharp
