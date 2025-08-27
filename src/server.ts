@@ -1,3 +1,4 @@
+import { colorStatusCode, getPath } from "./lib/helper";
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import multer from "multer";
@@ -5,41 +6,75 @@ import { default as pdfMergerHandler } from "./api/pdf-merger";
 import { default as htmlToPdfHandler } from "./api/html-to-pdf";
 import { default as pdfSplitterHandler } from "./api/pdf-splitter";
 import imageToPdf from "./api/image-to-pdf";
+import reqInfoMiddleware from "./middleware/req-info-middleware";
+import { tools } from "./lib/tools";
+import { pageTitles } from "./lib/pageTitles";
 
 const app = express();
 const PORT = 5000;
 
-// Middleware to log request method and path
-function middleware(req: Request, res: Response, next: NextFunction) {
-  console.log(`Requested on Route: ${req.path} Method: ${req.method}`);
-  next();
-}
-
 // Middlewares
 app.use(express.json({ limit: "5mb" })); // To parse JSON bodies with HTML content
-app.use(middleware); // Logging middleware
+app.use(reqInfoMiddleware); // Logging middleware
 
 // Set up multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+// EJS setup
+app.set("views", getPath("templates")); // where your .ejs files live
+app.set("view engine", "ejs");
+
 // Routes for the frontend pages
-app.get("/", (req: Request, res: Response) => {
-  return res.sendFile(path.join(__dirname, "./templates/index.html"));
-});
+app.use(express.static(path.join(__dirname, "../", "public"))); // for serving static files (CSS, JS, images)
 
 // Front-End Routes
+app.get("/", (req: Request, res: Response) => {
+  res.render("pages/index", {
+    title: pageTitles.home,
+    tools,
+    activeTool: tools.home.name,
+  });
+});
+
+app.get("/about", (req, res) => {
+  res.render("pages/about", {
+    title: "About Us",
+    tools,
+    activeTool: tools.about.name,
+  });
+});
+
 app.get("/html-to-pdf", (req: Request, res: Response) =>
-  res.sendFile(path.join(__dirname, "./templates/html-to-pdf-input.html"))
+  res.render("pages/html-to-pdf-input", {
+    tools,
+    activeTool: tools.htmlToPDF.name,
+    title: pageTitles.htmlToPDF,
+  })
 );
+
 app.get("/pdf-merger", (req: Request, res: Response) =>
-  res.sendFile(path.join(__dirname, "./templates/pdf-merger-input.html"))
+  res.render("pages/pdf-merger-input", {
+    title: pageTitles.pdfMerger,
+    tools,
+    activeTool: tools.pdfMerger.name,
+  })
 );
+
 app.get("/pdf-splitter", (req: Request, res: Response) =>
-  res.sendFile(path.join(__dirname, "./templates/pdf-splitter-input.html"))
+  res.render("pages/pdf-splitter-input", {
+    title: pageTitles.pdfSplitter,
+    tools,
+    activeTool: tools.pdfSplitter.name,
+  })
 );
+
 app.get("/image-to-pdf", (req: Request, res: Response) =>
-  res.sendFile(path.join(__dirname, "./templates/image-to-pdf-input.html"))
+  res.render("pages/image-to-pdf-input", {
+    title: pageTitles.imageToPDF,
+    tools,
+    activeTool: tools.imageToPDF.name,
+  })
 );
 
 // API Routes

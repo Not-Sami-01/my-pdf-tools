@@ -1,0 +1,32 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('./../components/header') %>
+
+  <body class="bg-gray-50 text-gray-800">
+    <%- include('./../components/navbar') %> <%- include('./../components/hero')
+    %>
+    <main class="max-w-5xl mx-auto py-12 px-6 space-y-10">
+      <div class="text-center">
+        <h2 class="text-3xl font-semibold mb-2">Welcome to PDF Tools</h2>
+        <p class="text-gray-600">
+          Convert, merge, and manage PDFs easily — right in your browser.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <% Object.entries(tools).forEach(function ([name, tool]) { %> <% if
+        (!tool.show) { %> <% return; %> <% } %>
+        <a
+          href="<%= tool.href %>"
+          class="block bg-white rounded-xl p-6 shadow hover:shadow-md transition border border-gray-200 hover:border-blue-500"
+        >
+          <h3 class="text-xl font-semibold text-blue-600"><%= tool.name %></h3>
+          <p class="text-gray-600 mt-2"><%= tool.description %></p>
+        </a>
+        <% }) %>
+      </div>
+    </main>
+    <%- include('./../components/footer') %>
+  </body>
+</html>

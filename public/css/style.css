@@ -1,0 +1,9 @@
+.drop-area {
+  border: 2px dashed #4caf50;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+}
+.drop-area.dragover {
+  background-color: #f0f9f4;
+}

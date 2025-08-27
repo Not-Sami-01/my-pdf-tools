@@ -22,7 +22,7 @@ const imageToPdfHandler = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         // Ensure that files are provided (images uploaded through FormData)
         if (!req.files || (Array.isArray(req.files) && req.files.length === 0)) {
-            res.status(400).json({ error: 'No images provided for PDF conversion.' });
+            res.status(400).json({ error: "No images provided for PDF conversion." });
             return;
         }
         // Create a new PDF document
@@ -31,17 +31,20 @@ const imageToPdfHandler = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const imageFiles = Array.isArray(req.files) ? req.files : [req.files];
         // Loop over each uploaded image file
         for (const file of imageFiles) {
+            if (!file || !file.buffer || !(file.buffer instanceof Buffer)) {
+                continue; // skip invalid files
+            }
             // Ensure the file has a buffer property (this should be automatically available)
             const imageBuffer = file.buffer; // Access the buffer directly from the Multer file object
             // Use Canvas to load the image
-            const image = yield (0, canvas_1.loadImage)(imageBuffer.toString());
+            const image = yield (0, canvas_1.loadImage)(imageBuffer);
             // Create a canvas with the image size
             const canvas = (0, canvas_1.createCanvas)(image.width, image.height);
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
             // Draw the image on the canvas
             ctx.drawImage(image, 0, 0);
             // Get the image buffer from the canvas (JPEG format)
-            const processedImageBuffer = canvas.toBuffer('image/jpeg');
+            const processedImageBuffer = canvas.toBuffer("image/jpeg");
             // Embed the image into the PDF document
             const embeddedImage = yield pdfDoc.embedJpg(processedImageBuffer);
             // Add a new page to the PDF
@@ -60,15 +63,15 @@ const imageToPdfHandler = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Serialize the PDF document to bytes
         const pdfBytes = yield pdfDoc.save();
         // Set response headers for the PDF download
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="converted.pdf"');
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", 'attachment; filename="converted.pdf"');
         // Send the generated PDF back to the client
         res.status(200).end(Buffer.from(pdfBytes));
     }
     catch (error) {
-        console.error('Error creating PDF:', error);
+        console.error("Error creating PDF:", error);
         // Send an error response if anything goes wrong
-        res.status(500).json({ error: 'Failed to convert images to PDF.' });
+        res.status(500).json({ error: "Failed to convert images to PDF." });
     }
 });
-exports.default = [upload.array('images'), imageToPdfHandler];
+exports.default = [upload.array("images"), imageToPdfHandler];

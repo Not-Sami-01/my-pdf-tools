@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('./../components/header') %>
+  <body class="bg-gray-100">
+    <%- include('./../components/navbar') %>
+
+    <div class="flex items-center justify-center p-6 min-h-screen">
+      <div
+        class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl space-y-5"
+      >
+        <h1 class="text-2xl font-semibold text-gray-800">
+          Upload Images to Convert to PDF
+        </h1>
+
+        <!-- Drop zone -->
+        <div
+          id="dropArea"
+          class="border-2 border-dashed border-gray-400 rounded-xl p-6 text-center text-gray-600 hover:bg-gray-50 cursor-pointer transition"
+        >
+          <p>Drag and drop image files here</p>
+          <p class="text-sm text-gray-400">or click to upload</p>
+          <input
+            type="file"
+            id="fileInput"
+            accept="image/*"
+            multiple
+            class="hidden"
+          />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button
+            id="submitBtn"
+            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Convert to PDF
+          </button>
+          <button
+            id="clearBtn"
+            class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition"
+          >
+            Clear / Restart
+          </button>
+        </div>
+
+        <!-- Status -->
+        <p id="status" class="text-sm text-gray-500"></p>
+
+        <!-- Preview -->
+        <div id="previewContainer" class="hidden mt-4 space-y-3">
+          <h2 class="text-lg font-medium">PDF Preview:</h2>
+          <iframe
+            id="pdfPreview"
+            class="w-full h-[500px] border rounded-md"
+          ></iframe>
+          <a
+            id="downloadLink"
+            class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            download="converted.pdf"
+            >Download PDF</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const dropArea = document.getElementById("dropArea");
+      const fileInput = document.getElementById("fileInput");
+      const submitBtn = document.getElementById("submitBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const status = document.getElementById("status");
+      const previewContainer = document.getElementById("previewContainer");
+      const pdfPreview = document.getElementById("pdfPreview");
+      const downloadLink = document.getElementById("downloadLink");
+
+      let selectedFiles = [];
+
+      // Handle drop
+      dropArea.addEventListener("click", () => fileInput.click());
+      dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("bg-gray-100");
+      });
+      dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("bg-gray-100");
+      });
+      dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("bg-gray-100");
+        selectedFiles = Array.from(e.dataTransfer.files);
+      });
+
+      // Handle input
+      fileInput.addEventListener("change", (e) => {
+        selectedFiles = Array.from(e.target.files);
+      });
+
+      // Submit
+      submitBtn.addEventListener("click", async () => {
+        if (selectedFiles.length === 0) {
+          status.textContent = "Please select or drag-drop some images.";
+          return;
+        }
+
+        const formData = new FormData();
+        selectedFiles.forEach((file) => formData.append("images", file));
+
+        status.textContent = "Converting images to PDF...";
+
+        try {
+          const res = await fetch("/api/image-to-pdf", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) throw new Error(await res.text());
+
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+
+          pdfPreview.src = blobUrl;
+          downloadLink.href = blobUrl;
+          previewContainer.classList.remove("hidden");
+
+          status.textContent = "PDF ready!";
+        } catch (err) {
+          console.error(err);
+          status.textContent = "Failed to create PDF.";
+        }
+      });
+
+      // Clear
+      clearBtn.addEventListener("click", () => {
+        fileInput.value = "";
+        selectedFiles = [];
+        pdfPreview.src = "";
+        downloadLink.href = "";
+        previewContainer.classList.add("hidden");
+        status.textContent = "";
+      });
+    </script>
+
+    <%- include('./../components/footer') %>
+  </body>
+</html>

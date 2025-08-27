@@ -1,19 +1,22 @@
-import fs from 'fs';
-import path from 'path';
-import { PDFDocument } from 'pdf-lib';
-import { createCanvas, loadImage } from 'canvas';
-import multer from 'multer';
-import { Request, Response } from 'express';
+import fs from "fs";
+import path from "path";
+import { PDFDocument } from "pdf-lib";
+import { createCanvas, loadImage } from "canvas";
+import multer from "multer";
+import { Request, Response } from "express";
 
 // Set up multer for handling image uploads (in memory)
-const upload = multer({ storage: multer.memoryStorage() });  // Memory storage to avoid saving to disk
+const upload = multer({ storage: multer.memoryStorage() }); // Memory storage to avoid saving to disk
 
 // Handler for converting images to PDF
-const imageToPdfHandler = async (req: Request, res: Response): Promise<void> => {
+const imageToPdfHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Ensure that files are provided (images uploaded through FormData)
     if (!req.files || (Array.isArray(req.files) && req.files.length === 0)) {
-      res.status(400).json({ error: 'No images provided for PDF conversion.' });
+      res.status(400).json({ error: "No images provided for PDF conversion." });
       return;
     }
 
@@ -25,21 +28,24 @@ const imageToPdfHandler = async (req: Request, res: Response): Promise<void> => 
 
     // Loop over each uploaded image file
     for (const file of imageFiles) {
+      if (!file || !file.buffer || !(file.buffer instanceof Buffer)) {
+        continue; // skip invalid files
+      }
       // Ensure the file has a buffer property (this should be automatically available)
-      const imageBuffer = file.buffer;  // Access the buffer directly from the Multer file object
+      const imageBuffer = file.buffer; // Access the buffer directly from the Multer file object
 
       // Use Canvas to load the image
-      const image = await loadImage(imageBuffer.toString());
-      
+      const image = await loadImage(imageBuffer);
+
       // Create a canvas with the image size
       const canvas = createCanvas(image.width, image.height);
-      const ctx = canvas.getContext('2d');
-      
+      const ctx = canvas.getContext("2d");
+
       // Draw the image on the canvas
       ctx.drawImage(image, 0, 0);
 
       // Get the image buffer from the canvas (JPEG format)
-      const processedImageBuffer = canvas.toBuffer('image/jpeg');
+      const processedImageBuffer = canvas.toBuffer("image/jpeg");
 
       // Embed the image into the PDF document
       const embeddedImage = await pdfDoc.embedJpg(processedImageBuffer);
@@ -64,17 +70,20 @@ const imageToPdfHandler = async (req: Request, res: Response): Promise<void> => 
     const pdfBytes = await pdfDoc.save();
 
     // Set response headers for the PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="converted.pdf"');
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="converted.pdf"'
+    );
 
     // Send the generated PDF back to the client
     res.status(200).end(Buffer.from(pdfBytes));
   } catch (error) {
-    console.error('Error creating PDF:', error);
+    console.error("Error creating PDF:", error);
 
     // Send an error response if anything goes wrong
-    res.status(500).json({ error: 'Failed to convert images to PDF.' });
+    res.status(500).json({ error: "Failed to convert images to PDF." });
   }
 };
 
-export default [upload.array('images'), imageToPdfHandler];
+export default [upload.array("images"), imageToPdfHandler];
