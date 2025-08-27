@@ -84,8 +84,6 @@ app.post("/api/pdf-splitter", upload.single("file"), pdfSplitterHandler);
 app.post("/api/image-to-pdf", imageToPdf);
 
 // Listener function
-// app.listen(PORT, () => {
-//   console.log(`The app is listening on http://localhost:${PORT}`);
-// });
-
-export default app;
+app.listen(PORT, () => {
+  console.log(`The app is listening on http://localhost:${PORT}`);
+});
